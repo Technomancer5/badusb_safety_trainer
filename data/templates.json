@@ -30,5 +30,21 @@
             "persistence",
             "stealth behavior"
         ]
+    },
+    {
+        "id": "custom_safety_demo",
+        "name": "Custom Safety Demo",
+        "risk_level": "Low",
+        "description": "Creates a custom safe training script using a harmless message, a safe web URL, or both.",
+        "defensive_lesson": "Safe training scripts should be reviewed before use and should only perform simple, authorized demonstration actions.",
+        "allowed_fields": ["message", "url", "delay_ms"],
+        "blocked_actions": [
+            "credential collection",
+            "file exfiltration",
+            "downloading external code",
+            "changing security settings",
+            "persistence",
+            "stealth behavior"
+        ]
     }
 ]

@@ -34,8 +34,8 @@
             <h2>Builder Form</h2>
 
             <p class="helper-text">
-                Preview is allowed without checking the safety acknowledgements.
-                Export requires every acknowledgement to be checked.
+                Select a template to show only the fields related to that safe training scenario.
+                Export requires every safety acknowledgement to be checked.
             </p>
 
             {% if errors %}
@@ -63,63 +63,73 @@
                     {% endfor %}
                 </select>
 
-                <label for="delay_ms">Start Delay in Milliseconds</label>
-                <input
-                    id="delay_ms"
-                    name="delay_ms"
-                    type="number"
-                    min="250"
-                    max="5000"
-                    value="{{ form_values.get('delay_ms', '1000') }}"
-                >
+                <div class="template-field" data-field-group="delay">
+                    <label for="delay_ms">Start Delay in Milliseconds</label>
+                    <input
+                        id="delay_ms"
+                        name="delay_ms"
+                        type="number"
+                        min="250"
+                        max="5000"
+                        value="{{ form_values.get('delay_ms', '1000') }}"
+                    >
+                </div>
 
-                <label for="message">Training Message</label>
-                <input
-                    id="message"
-                    name="message"
-                    type="text"
-                    maxlength="120"
-                    placeholder="Example: This is a safe USB awareness demo."
-                    value="{{ form_values.get('message', '') }}"
-                >
+                <div class="template-field" data-field-group="message">
+                    <label for="message">Training Message</label>
+                    <input
+                        id="message"
+                        name="message"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Example: This is a safe USB awareness demo."
+                        value="{{ form_values.get('message', '') }}"
+                    >
+                </div>
 
-                <label for="url">Safe Demo URL</label>
-                <input
-                    id="url"
-                    name="url"
-                    type="url"
-                    placeholder="Example: https://www.savanteducator.com"
-                    value="{{ form_values.get('url', '') }}"
-                >
+                <div class="template-field" data-field-group="url">
+                    <label for="url">Safe Demo URL</label>
+                    <input
+                        id="url"
+                        name="url"
+                        type="url"
+                        placeholder="Example: https://www.savanteducator.com"
+                        value="{{ form_values.get('url', '') }}"
+                    >
+                </div>
 
-                <label for="training_purpose">Training Purpose</label>
-                <input
-                    id="training_purpose"
-                    name="training_purpose"
-                    type="text"
-                    maxlength="120"
-                    placeholder="Example: Demonstrate why unknown USB devices are risky."
-                    value="{{ form_values.get('training_purpose', '') }}"
-                >
+                <div class="documentation-fields">
+                    <h3>Lab Documentation</h3>
 
-                <label for="target_environment">Target Environment</label>
-                <input
-                    id="target_environment"
-                    name="target_environment"
-                    type="text"
-                    maxlength="120"
-                    placeholder="Example: My authorized local lab laptop."
-                    value="{{ form_values.get('target_environment', '') }}"
-                >
+                    <label for="training_purpose">Training Purpose</label>
+                    <input
+                        id="training_purpose"
+                        name="training_purpose"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Example: Demonstrate why unknown USB devices are risky."
+                        value="{{ form_values.get('training_purpose', '') }}"
+                    >
 
-                <label for="lab_notes">Lab Notes</label>
-                <textarea
-                    id="lab_notes"
-                    name="lab_notes"
-                    rows="4"
-                    maxlength="500"
-                    placeholder="Optional notes about the lab setup, expected result, or lesson learned."
-                >{{ form_values.get('lab_notes', '') }}</textarea>
+                    <label for="target_environment">Target Environment</label>
+                    <input
+                        id="target_environment"
+                        name="target_environment"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Example: My authorized local lab laptop."
+                        value="{{ form_values.get('target_environment', '') }}"
+                    >
+
+                    <label for="lab_notes">Lab Notes</label>
+                    <textarea
+                        id="lab_notes"
+                        name="lab_notes"
+                        rows="4"
+                        maxlength="500"
+                        placeholder="Optional notes about the lab setup, expected result, or lesson learned."
+                    >{{ form_values.get('lab_notes', '') }}</textarea>
+                </div>
 
                 <div class="export-checklist" id="export-checklist">
                     <h3>Required Safety Acknowledgements for Export</h3>
@@ -190,11 +200,40 @@
         </section>
     </main>
 
+    <div
+        id="preview-state"
+        data-has-generated-script="{% if generated_script %}true{% else %}false{% endif %}"
+    ></div> 
+
     <script>
         const form = document.getElementById("safe-builder-form");
+        const templateSelect = document.getElementById("template_id");
         const exportButton = document.getElementById("export-button");
         const previewButton = document.getElementById("preview-button");
         const exportChecklist = document.getElementById("export-checklist");
+
+        const fieldRules = {
+            "usb_awareness_message": ["delay", "message"],
+            "portfolio_url_demo": ["delay", "url"],
+            "custom_safety_demo": ["delay", "message", "url"]
+        };
+
+        function updateVisibleFields() {
+            const selectedTemplate = templateSelect.value;
+            const allowedFields = fieldRules[selectedTemplate] || [];
+
+            const templateFields = document.querySelectorAll(".template-field");
+
+            templateFields.forEach(function (fieldGroup) {
+                const fieldName = fieldGroup.dataset.fieldGroup;
+
+                if (allowedFields.includes(fieldName)) {
+                    fieldGroup.classList.remove("hidden-field");
+                } else {
+                    fieldGroup.classList.add("hidden-field");
+                }
+            });
+        }
 
         let clickedAction = "preview";
 
@@ -205,6 +244,9 @@
         exportButton.addEventListener("click", function () {
             clickedAction = "export";
         });
+
+        templateSelect.addEventListener("change", updateVisibleFields);
+        updateVisibleFields();
 
         form.addEventListener("submit", function (event) {
             if (clickedAction !== "export") {
@@ -229,16 +271,18 @@
             }
         });
 
-        {% if generated_script %}
+        const previewState = document.getElementById("preview-state");
+
+        if (previewState.dataset.hasGeneratedScript === "true") {
             window.addEventListener("load", function () {
                 const previewSection = document.getElementById("preview-section");
 
-                previewSection.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            });
-        {% endif %}
+        previewSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
+}
     </script>
 </body>
 </html>

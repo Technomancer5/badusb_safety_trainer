@@ -411,3 +411,23 @@ code {
         grid-template-columns: 1fr;
     }
 }
+
+.hidden-field {
+    display: none;
+}
+
+.documentation-fields {
+    display: grid;
+    gap: 14px;
+    margin-top: 10px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #111827;
+    border: 1px solid #475569;
+}
+
+.documentation-fields h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    color: #93c5fd;
+}

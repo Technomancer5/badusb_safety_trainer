@@ -237,6 +237,31 @@ STRING {url}
 ENTER
 """
 
+def generate_custom_safety_demo(message, url, delay_ms):
+    """
+    Generate a custom harmless script using a message, a URL, or both.
+
+    This template is still safety-limited. It does not collect data, download
+    files, modify settings, or run hidden system commands.
+    """
+    script_lines = [
+        "REM BadUSB Safety Trainer - Custom Safety Demo",
+        "REM Authorized lab use only.",
+        "REM This script only performs simple harmless demonstration actions.",
+        f"DELAY {delay_ms}",
+    ]
+
+    if message:
+        script_lines.append(f"STRING {message}")
+        script_lines.append("ENTER")
+
+    if url:
+        script_lines.append("GUI r")
+        script_lines.append("DELAY 500")
+        script_lines.append(f"STRING {url}")
+        script_lines.append("ENTER")
+
+    return "\n".join(script_lines) + "\n"
 
 def build_safe_script(template_id, form_data):
     """
@@ -285,7 +310,32 @@ def build_safe_script(template_id, form_data):
         script = generate_portfolio_url_demo(url, delay_ms)
         return script, errors
 
-    errors.append("Unknown template selected.")
+    if template_id == "custom_safety_demo":
+        message = form_data.get("message", "").strip()
+        url = form_data.get("url", "").strip()
+
+        if not message and not url:
+            errors.append("Custom Safety Demo requires a message, a URL, or both.")
+
+        if len(message) > 120:
+            errors.append("Training message must be 120 characters or fewer.")
+
+        if message and contains_blocked_terms(message):
+            errors.append("Training message contains blocked unsafe terms.")
+
+        if url and contains_blocked_terms(url):
+            errors.append("URL contains blocked unsafe terms.")
+
+        if url and not is_safe_url(url):
+            errors.append("Only valid http or https URLs are allowed.")
+
+        if errors:
+            return "", errors
+
+        script = generate_custom_safety_demo(message, url, delay_ms)
+        return script, errors
+
+    errors.append(f"Unknown template selected: {template_id}")
     return "", errors
 
 
