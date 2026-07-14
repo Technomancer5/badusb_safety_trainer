@@ -1,0 +1,34 @@
+[
+    {
+        "id": "usb_awareness_message",
+        "name": "USB Awareness Message",
+        "risk_level": "Low",
+        "description": "Types a harmless training message to demonstrate how quickly keystroke automation can enter text.",
+        "defensive_lesson": "Never plug in unknown USB devices and always lock an unattended workstation.",
+        "allowed_fields": ["message", "delay_ms"],
+        "blocked_actions": [
+            "credential collection",
+            "file exfiltration",
+            "downloading external code",
+            "changing security settings",
+            "persistence",
+            "stealth behavior"
+        ]
+    },
+    {
+        "id": "portfolio_url_demo",
+        "name": "Portfolio URL Demo",
+        "risk_level": "Low",
+        "description": "Opens a safe user-provided website URL as a benign demonstration of keyboard automation.",
+        "defensive_lesson": "A trusted-looking USB device can interact with an unlocked computer as if it were a keyboard.",
+        "allowed_fields": ["url", "delay_ms"],
+        "blocked_actions": [
+            "credential collection",
+            "file exfiltration",
+            "downloading external code",
+            "changing security settings",
+            "persistence",
+            "stealth behavior"
+        ]
+    }
+]

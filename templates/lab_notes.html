@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Notes | BadUSB Safety Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Training Documentation</p>
+            <h1>Lab Notes & Export History</h1>
+            <p class="subtitle">
+                Review exported safe training scripts and the defensive lesson documented for each lab.
+            </p>
+
+            <a class="button-link" href="{{ url_for('index') }}">Back to Dashboard</a>
+            <a class="button-link secondary" href="{{ url_for('builder') }}">Open Safe Builder</a>
+        </section>
+
+        {% if notes %}
+            <section class="notes-list">
+                {% for note in notes %}
+                    <article class="note-card">
+                        <div class="template-header">
+                            <h2>{{ note.template_name }}</h2>
+                            <span class="risk-badge">{{ note.risk_level }}</span>
+                        </div>
+
+                        <p class="helper-text">
+                            <strong>Created:</strong> {{ note.created_at }}
+                        </p>
+
+                        <p>
+                            <strong>Exported File:</strong>
+                            <code>{{ note.exported_filename }}</code>
+                        </p>
+
+                        <p>
+                            <strong>Training Purpose:</strong>
+                            {{ note.training_purpose }}
+                        </p>
+
+                        <p>
+                            <strong>Target Environment:</strong>
+                            {{ note.target_environment }}
+                        </p>
+
+                        <p>
+                            <strong>Defensive Lesson:</strong>
+                            {{ note.defensive_lesson }}
+                        </p>
+
+                        {% if note.notes %}
+                            <p>
+                                <strong>Notes:</strong>
+                                {{ note.notes }}
+                            </p>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="card">
+                <h2>No lab notes yet</h2>
+                <p>
+                    Export a safe training script from the builder to automatically create
+                    a lab note record.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

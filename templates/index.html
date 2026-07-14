@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Defensive Cybersecurity Training</p>
+            <h1>{{ project.name }}</h1>
+            <p class="subtitle">{{ project.purpose }}</p>
+            <p class="status">{{ project.status }}</p>
+        </section>
+
+        <section class="card">
+            <h2>Project Safety Rules</h2>
+            <p>
+                This application is designed for safe, authorized BadUSB awareness training.
+                It will only support harmless templates that demonstrate keystroke automation
+                concepts without collecting data, modifying security settings, or damaging systems.
+            </p>
+
+            <ul class="safety-list">
+                {% for item in project.safety_focus %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+<section class="card">
+    <h2>Template Library, Builder, Lab Notes & Checklist</h2>
+    <p>
+        Review safe templates, preview and export harmless BadUSB awareness scripts,
+        document lab notes, and track defensive USB security controls.
+    </p>
+
+    <a class="button-link" href="{{ url_for('template_library') }}">
+        View Safe Templates
+    </a>
+
+    <a class="button-link secondary" href="{{ url_for('builder') }}">
+        Open Safe Builder
+    </a>
+
+    <a class="button-link secondary" href="{{ url_for('lab_notes') }}">
+        View Lab Notes
+    </a>
+
+    <a class="button-link secondary" href="{{ url_for('usb_checklist') }}">
+        USB Security Checklist
+    </a>
+</section>
+
+        <section class="card">
+            <h2>Planned Local Workflow</h2>
+            <div class="workflow">
+                <div>
+                    <span class="step-number">1</span>
+                    <p>Select a safe training template.</p>
+                </div>
+
+                <div>
+                    <span class="step-number">2</span>
+                    <p>Customize harmless text or a safe demo URL.</p>
+                </div>
+
+                <div>
+                    <span class="step-number">3</span>
+                    <p>Preview the generated training script.</p>
+                </div>
+
+                <div>
+                    <span class="step-number">4</span>
+                    <p>Export a Flipper-compatible .txt file for authorized lab use.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

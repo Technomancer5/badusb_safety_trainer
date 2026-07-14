@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Safe Builder | BadUSB Safety Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Safe Script Builder</p>
+            <h1>Build a Training Script</h1>
+            <p class="subtitle">
+                Select a safe template, enter harmless values, and preview the generated
+                training script before using it in an authorized lab.
+            </p>
+
+            <a class="button-link" href="{{ url_for('index') }}">Back to Dashboard</a>
+            <a class="button-link secondary" href="{{ url_for('template_library') }}">View Templates</a>
+            <a class="button-link secondary" href="{{ url_for('lab_notes') }}">View Lab Notes</a>
+        </section>
+
+        <section class="card warning-card">
+            <h2>Safety Reminder</h2>
+            <p>
+                Use generated scripts only on devices you own or have explicit permission to test.
+                This trainer blocks unsafe terms and does not include templates for credential theft,
+                data exfiltration, stealth, persistence, or security bypassing.
+            </p>
+        </section>
+
+        <section class="card" id="builder-section">
+            <h2>Builder Form</h2>
+
+            <p class="helper-text">
+                Preview is allowed without checking the safety acknowledgements.
+                Export requires every acknowledgement to be checked.
+            </p>
+
+            {% if errors %}
+                <div class="error-box">
+                    <h3>Please fix the following:</h3>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST" class="builder-form" id="safe-builder-form">
+                <label for="template_id">Training Template</label>
+                <select id="template_id" name="template_id" required>
+                    <option value="">Select a template</option>
+                    {% for template in templates %}
+                        <option
+                            value="{{ template.id }}"
+                            {% if form_values.get("template_id") == template.id %}selected{% endif %}
+                        >
+                            {{ template.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="delay_ms">Start Delay in Milliseconds</label>
+                <input
+                    id="delay_ms"
+                    name="delay_ms"
+                    type="number"
+                    min="250"
+                    max="5000"
+                    value="{{ form_values.get('delay_ms', '1000') }}"
+                >
+
+                <label for="message">Training Message</label>
+                <input
+                    id="message"
+                    name="message"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Example: This is a safe USB awareness demo."
+                    value="{{ form_values.get('message', '') }}"
+                >
+
+                <label for="url">Safe Demo URL</label>
+                <input
+                    id="url"
+                    name="url"
+                    type="url"
+                    placeholder="Example: https://www.savanteducator.com"
+                    value="{{ form_values.get('url', '') }}"
+                >
+
+                <label for="training_purpose">Training Purpose</label>
+                <input
+                    id="training_purpose"
+                    name="training_purpose"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Example: Demonstrate why unknown USB devices are risky."
+                    value="{{ form_values.get('training_purpose', '') }}"
+                >
+
+                <label for="target_environment">Target Environment</label>
+                <input
+                    id="target_environment"
+                    name="target_environment"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Example: My authorized local lab laptop."
+                    value="{{ form_values.get('target_environment', '') }}"
+                >
+
+                <label for="lab_notes">Lab Notes</label>
+                <textarea
+                    id="lab_notes"
+                    name="lab_notes"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Optional notes about the lab setup, expected result, or lesson learned."
+                >{{ form_values.get('lab_notes', '') }}</textarea>
+
+                <div class="export-checklist" id="export-checklist">
+                    <h3>Required Safety Acknowledgements for Export</h3>
+                    <p class="helper-text">
+                        These are required only when exporting a script file.
+                    </p>
+
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="authorized_device" data-export-required>
+                        I own or am authorized to test the target device.
+                    </label>
+
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="no_data_collection" data-export-required>
+                        This script does not collect data.
+                    </label>
+
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="no_security_changes" data-export-required>
+                        This script does not modify security settings.
+                    </label>
+
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="no_external_code" data-export-required>
+                        This script does not download or execute external code.
+                    </label>
+
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="controlled_lab" data-export-required>
+                        This script is for a controlled lab demo.
+                    </label>
+                </div>
+
+                <div class="button-row">
+                    <button type="submit" name="action" value="preview" id="preview-button">
+                        Preview Safe Script
+                    </button>
+
+                    <button type="submit" name="action" value="export" class="export-button" id="export-button">
+                        Export Safe Script
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="preview-section">
+            {% if selected_template %}
+                <section class="card">
+                    <h2>Selected Template</h2>
+                    <p><strong>Name:</strong> {{ selected_template.name }}</p>
+                    <p><strong>Risk Level:</strong> {{ selected_template.risk_level }}</p>
+                    <p><strong>Defensive Lesson:</strong> {{ selected_template.defensive_lesson }}</p>
+                </section>
+            {% endif %}
+
+            {% if generated_script %}
+                <section class="card preview-card">
+                    <p class="eyebrow">Preview Ready</p>
+                    <h2>Generated Script Preview</h2>
+                    <p>
+                        Review this script before exporting or using it. It is intentionally limited to
+                        harmless demonstration behavior.
+                    </p>
+
+                    <pre class="script-preview">{{ generated_script }}</pre>
+                </section>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById("safe-builder-form");
+        const exportButton = document.getElementById("export-button");
+        const previewButton = document.getElementById("preview-button");
+        const exportChecklist = document.getElementById("export-checklist");
+
+        let clickedAction = "preview";
+
+        previewButton.addEventListener("click", function () {
+            clickedAction = "preview";
+        });
+
+        exportButton.addEventListener("click", function () {
+            clickedAction = "export";
+        });
+
+        form.addEventListener("submit", function (event) {
+            if (clickedAction !== "export") {
+                return;
+            }
+
+            const requiredChecks = document.querySelectorAll("[data-export-required]");
+            const missingChecks = Array.from(requiredChecks).filter(function (checkbox) {
+                return !checkbox.checked;
+            });
+
+            if (missingChecks.length > 0) {
+                event.preventDefault();
+
+                exportChecklist.classList.add("attention-box");
+                exportChecklist.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                alert("Please check every safety acknowledgement before exporting.");
+            }
+        });
+
+        {% if generated_script %}
+            window.addEventListener("load", function () {
+                const previewSection = document.getElementById("preview-section");
+
+                previewSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
+        {% endif %}
+    </script>
+</body>
+</html>

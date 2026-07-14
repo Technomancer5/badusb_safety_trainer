@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>USB Security Checklist | BadUSB Safety Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Defensive Controls</p>
+            <h1>USB Security Checklist</h1>
+            <p class="subtitle">
+                Track practical security controls that reduce risk from unknown USB devices
+                and support safer home lab or workstation habits.
+            </p>
+
+            <a class="button-link" href="{{ url_for('index') }}">Back to Dashboard</a>
+            <a class="button-link secondary" href="{{ url_for('builder') }}">Open Safe Builder</a>
+        </section>
+
+        <section class="card">
+            <h2>Readiness Summary</h2>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <span class="summary-number">{{ summary["Complete"] }}</span>
+                    <span>Complete</span>
+                </div>
+
+                <div class="summary-card">
+                    <span class="summary-number">{{ summary["Needs Review"] }}</span>
+                    <span>Needs Review</span>
+                </div>
+
+                <div class="summary-card">
+                    <span class="summary-number">{{ summary["Not Started"] }}</span>
+                    <span>Not Started</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Checklist Items</h2>
+
+            <form method="POST" class="checklist-form">
+                {% for item in checklist_items %}
+                    <article class="checklist-item">
+                        <div class="template-header">
+                            <h3>{{ item.title }}</h3>
+                            <span class="risk-badge">{{ item.category }}</span>
+                        </div>
+
+                        <p>
+                            <strong>Why it matters:</strong>
+                            {{ item.why_it_matters }}
+                        </p>
+
+                        <label for="status_{{ item.id }}">Status</label>
+                        <select id="status_{{ item.id }}" name="status_{{ item.id }}">
+                            <option value="Not Started" {% if item.status == "Not Started" %}selected{% endif %}>
+                                Not Started
+                            </option>
+
+                            <option value="Needs Review" {% if item.status == "Needs Review" %}selected{% endif %}>
+                                Needs Review
+                            </option>
+
+                            <option value="Complete" {% if item.status == "Complete" %}selected{% endif %}>
+                                Complete
+                            </option>
+                        </select>
+
+                        <label for="notes_{{ item.id }}">Notes</label>
+                        <textarea
+                            id="notes_{{ item.id }}"
+                            name="notes_{{ item.id }}"
+                            rows="3"
+                            maxlength="400"
+                            placeholder="Add notes about how this control applies to your lab, workstation, or server."
+                        >{{ item.notes }}</textarea>
+                    </article>
+                {% endfor %}
+
+                <button type="submit">Save Checklist</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

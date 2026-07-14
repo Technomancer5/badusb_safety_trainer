@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Template Library | BadUSB Safety Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Safe Template Library</p>
+            <h1>Training Templates</h1>
+            <p class="subtitle">
+                These templates are intentionally harmless and are designed for
+                defensive USB security awareness training only.
+            </p>
+
+            <a class="button-link" href="{{ url_for('index') }}">Back to Dashboard</a>
+        </section>
+
+        {% if templates %}
+            <section class="template-grid">
+                {% for template in templates %}
+                    <article class="template-card">
+                        <div class="template-header">
+                            <h2>{{ template.name }}</h2>
+                            <span class="risk-badge">{{ template.risk_level }}</span>
+                        </div>
+
+                        <p>{{ template.description }}</p>
+
+                        <h3>Defensive Lesson</h3>
+                        <p>{{ template.defensive_lesson }}</p>
+
+                        <h3>Allowed Fields</h3>
+                        <ul>
+                            {% for field in template.allowed_fields %}
+                                <li>{{ field }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <h3>Blocked Actions</h3>
+                        <ul>
+                            {% for action in template.blocked_actions %}
+                                <li>{{ action }}</li>
+                            {% endfor %}
+                        </ul>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="card">
+                <h2>No templates found</h2>
+                <p>
+                    The template data file could not be loaded. Check
+                    <code>data/templates.json</code>.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

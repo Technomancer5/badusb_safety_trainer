@@ -1,0 +1,42 @@
+[
+    {
+        "id": "lock_workstation",
+        "title": "Lock workstation when unattended",
+        "category": "Physical Security",
+        "why_it_matters": "BadUSB-style attacks depend on a device being able to interact with an unlocked computer.",
+        "status": "Complete",
+        "notes": "test"
+    },
+    {
+        "id": "authorized_usb_only",
+        "title": "Use only authorized USB devices",
+        "category": "USB Policy",
+        "why_it_matters": "Unknown USB devices may act as keyboards, storage devices, or other trusted peripherals.",
+        "status": "Needs Review",
+        "notes": ""
+    },
+    {
+        "id": "least_privilege",
+        "title": "Use a non-admin daily account",
+        "category": "Account Security",
+        "why_it_matters": "Least privilege reduces the impact of accidental or unauthorized actions.",
+        "status": "Needs Review",
+        "notes": ""
+    },
+    {
+        "id": "server_console_access",
+        "title": "Restrict physical access to server console",
+        "category": "Home Server Security",
+        "why_it_matters": "Physical access to a server can bypass many network-based protections.",
+        "status": "Needs Review",
+        "notes": ""
+    },
+    {
+        "id": "document_usb_training",
+        "title": "Document authorized USB security training",
+        "category": "Security Documentation",
+        "why_it_matters": "Documenting training helps prove that testing was authorized, safe, and educational.",
+        "status": "Needs Review",
+        "notes": ""
+    }
+]
