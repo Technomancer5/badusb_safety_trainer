@@ -98,6 +98,41 @@
                     >
                 </div>
 
+                <div class="template-field" data-field-group="operating_systems">
+                    <h3>Target Operating Systems</h3>
+                    <p class="helper-text">
+                        Select one or more operating systems. The app will generate a separate
+                        script for each selected system.
+                    </p>
+                
+                    <label class="checkbox-row">
+                        <input
+                            type="checkbox"
+                            name="os_windows"
+                            {% if form_values.get("os_windows") == "on" %}checked{% endif %}
+                        >
+                        Windows
+                    </label>
+                
+                    <label class="checkbox-row">
+                        <input
+                            type="checkbox"
+                            name="os_linux"
+                            {% if form_values.get("os_linux") == "on" %}checked{% endif %}
+                        >
+                        Linux
+                    </label>
+                
+                    <label class="checkbox-row">
+                        <input
+                            type="checkbox"
+                            name="os_macos"
+                            {% if form_values.get("os_macos") == "on" %}checked{% endif %}
+                        >
+                        macOS
+                    </label>
+                </div>
+
                 <div class="documentation-fields">
                     <h3>Lab Documentation</h3>
 
@@ -185,16 +220,19 @@
                 </section>
             {% endif %}
 
-            {% if generated_script %}
+            {% if generated_scripts %}
                 <section class="card preview-card">
                     <p class="eyebrow">Preview Ready</p>
                     <h2>Generated Script Preview</h2>
                     <p>
-                        Review this script before exporting or using it. It is intentionally limited to
-                        harmless demonstration behavior.
+                        Review each generated script before exporting or using it. Each selected
+                        operating system receives its own script.
                     </p>
-
-                    <pre class="script-preview">{{ generated_script }}</pre>
+            
+                    {% for os_label, script_text in generated_scripts.items() %}
+                        <h3>{{ os_label }} Script</h3>
+                        <pre class="script-preview">{{ script_text }}</pre>
+                    {% endfor %}
                 </section>
             {% endif %}
         </section>
@@ -202,7 +240,7 @@
 
     <div
         id="preview-state"
-        data-has-generated-script="{% if generated_script %}true{% else %}false{% endif %}"
+        data-has-generated-script="{% if generated_scripts %}true{% else %}false{% endif %}"
     ></div> 
 
     <script>
@@ -214,8 +252,8 @@
 
         const fieldRules = {
             "usb_awareness_message": ["delay", "message"],
-            "portfolio_url_demo": ["delay", "url"],
-            "custom_safety_demo": ["delay", "message", "url"]
+            "portfolio_url_demo": ["delay", "url", "operating_systems"],
+            "custom_safety_demo": ["delay", "message", "url", "operating_systems"]
         };
 
         function updateVisibleFields() {

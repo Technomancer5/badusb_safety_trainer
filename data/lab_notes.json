@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "created_at": "2026-07-20 21:34:45",
+        "template_id": "portfolio_url_demo",
+        "template_name": "Portfolio URL Demo",
+        "risk_level": "Low",
+        "defensive_lesson": "A trusted-looking USB device can interact with an unlocked computer as if it were a keyboard.",
+        "training_purpose": "test",
+        "target_environment": "test",
+        "notes": "",
+        "selected_operating_systems": "Linux",
+        "exported_filename": "portfolio_url_demo_20260720_213445.zip"
+    }
+]

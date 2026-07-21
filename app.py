@@ -10,7 +10,9 @@ payloads that steal data, bypass security, download code, or modify systems.
 
 import json
 import re
+import zipfile
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -165,6 +167,34 @@ def sanitize_delay(delay_value):
 
     return delay
 
+def get_selected_operating_systems(form_data):
+    """
+    Read selected operating systems from the builder form.
+
+    The builder can generate one script, or multiple scripts, depending on
+    which OS checkboxes the user selects.
+    """
+    allowed_systems = ["windows", "linux", "macos"]
+    selected_systems = []
+
+    for operating_system in allowed_systems:
+        if form_data.get(f"os_{operating_system}") == "on":
+            selected_systems.append(operating_system)
+
+    return selected_systems
+
+
+def format_os_name(target_os):
+    """
+    Convert internal OS names into user-friendly labels.
+    """
+    labels = {
+        "windows": "Windows",
+        "linux": "Linux",
+        "macos": "macOS",
+    }
+
+    return labels.get(target_os, target_os)
 
 def contains_blocked_terms(user_text):
     """
@@ -220,16 +250,18 @@ ENTER
 """
 
 
-def generate_portfolio_url_demo(url, delay_ms):
+def generate_portfolio_url_demo(url, delay_ms, target_os):
     """
     Generate a harmless script that opens a safe website URL.
 
-    This is intended for use only on an authorized lab computer. The default
-    use case is opening the user's own portfolio website as a benign demo.
+    Because keyboard shortcuts are different across operating systems, this
+    function creates OS-specific versions instead of pretending one script
+    works everywhere.
     """
-    return f"""REM BadUSB Safety Trainer - Portfolio URL Demo
+    if target_os == "windows":
+        return f"""REM BadUSB Safety Trainer - Portfolio URL Demo - Windows
 REM Authorized lab use only.
-REM This script opens a safe http/https URL.
+REM Opens a safe http/https URL using the Windows Run dialog.
 DELAY {delay_ms}
 GUI r
 DELAY 500
@@ -237,15 +269,40 @@ STRING {url}
 ENTER
 """
 
-def generate_custom_safety_demo(message, url, delay_ms):
+    if target_os == "linux":
+        return f"""REM BadUSB Safety Trainer - Portfolio URL Demo - Linux
+        REM Authorized lab use only.
+        REM Opens a safe http/https URL using a Linux desktop launcher.
+        DELAY {delay_ms}
+        ALT F2
+        DELAY 1500
+        STRING xdg-open {url}
+        DELAY 300
+        ENTER
+        """
+
+    if target_os == "macos":
+        return f"""REM BadUSB Safety Trainer - Portfolio URL Demo - macOS
+REM Authorized lab use only.
+REM Opens a safe http/https URL using Spotlight.
+DELAY {delay_ms}
+GUI SPACE
+DELAY 700
+STRING {url}
+ENTER
+"""
+
+    return ""
+
+def generate_custom_safety_demo(message, url, delay_ms, target_os):
     """
     Generate a custom harmless script using a message, a URL, or both.
 
-    This template is still safety-limited. It does not collect data, download
-    files, modify settings, or run hidden system commands.
+    URL-opening behavior is generated differently for each selected operating
+    system because shortcuts are not universal.
     """
     script_lines = [
-        "REM BadUSB Safety Trainer - Custom Safety Demo",
+        f"REM BadUSB Safety Trainer - Custom Safety Demo - {target_os.title()}",
         "REM Authorized lab use only.",
         "REM This script only performs simple harmless demonstration actions.",
         f"DELAY {delay_ms}",
@@ -256,22 +313,48 @@ def generate_custom_safety_demo(message, url, delay_ms):
         script_lines.append("ENTER")
 
     if url:
-        script_lines.append("GUI r")
-        script_lines.append("DELAY 500")
-        script_lines.append(f"STRING {url}")
-        script_lines.append("ENTER")
+        if target_os == "windows":
+            script_lines.extend([
+                "GUI r",
+                "DELAY 500",
+                f"STRING {url}",
+                "ENTER",
+            ])
+
+        elif target_os == "linux":
+            script_lines.extend([
+                "ALT F2",
+                "DELAY 700",
+                f"STRING xdg-open {url}",
+                "ENTER",
+            ])
+
+        elif target_os == "macos":
+            script_lines.extend([
+                "GUI SPACE",
+                "DELAY 700",
+                f"STRING {url}",
+                "ENTER",
+            ])
 
     return "\n".join(script_lines) + "\n"
 
 def build_safe_script(template_id, form_data):
     """
-    Build a safe training script from the selected template and form values.
+    Build one or more safe training scripts from the selected template.
 
     The function returns a tuple:
-    - generated script text
+    - dictionary of generated scripts
     - list of validation errors
+
+    The dictionary format is:
+    {
+        "Windows": "script text",
+        "Linux": "script text"
+    }
     """
     errors = []
+    generated_scripts = {}
     delay_ms = sanitize_delay(form_data.get("delay_ms", "1000"))
 
     if template_id == "usb_awareness_message":
@@ -287,13 +370,14 @@ def build_safe_script(template_id, form_data):
             errors.append("Training message contains blocked unsafe terms.")
 
         if errors:
-            return "", errors
+            return {}, errors
 
-        script = generate_usb_awareness_message(message, delay_ms)
-        return script, errors
+        generated_scripts["Generic"] = generate_usb_awareness_message(message, delay_ms)
+        return generated_scripts, errors
 
     if template_id == "portfolio_url_demo":
         url = form_data.get("url", "").strip()
+        selected_systems = get_selected_operating_systems(form_data)
 
         if not url:
             errors.append("URL is required.")
@@ -304,15 +388,22 @@ def build_safe_script(template_id, form_data):
         if url and not is_safe_url(url):
             errors.append("Only valid http or https URLs are allowed.")
 
-        if errors:
-            return "", errors
+        if not selected_systems:
+            errors.append("Select at least one operating system.")
 
-        script = generate_portfolio_url_demo(url, delay_ms)
-        return script, errors
+        if errors:
+            return {}, errors
+
+        for target_os in selected_systems:
+            os_label = format_os_name(target_os)
+            generated_scripts[os_label] = generate_portfolio_url_demo(url, delay_ms, target_os)
+
+        return generated_scripts, errors
 
     if template_id == "custom_safety_demo":
         message = form_data.get("message", "").strip()
         url = form_data.get("url", "").strip()
+        selected_systems = get_selected_operating_systems(form_data)
 
         if not message and not url:
             errors.append("Custom Safety Demo requires a message, a URL, or both.")
@@ -329,14 +420,33 @@ def build_safe_script(template_id, form_data):
         if url and not is_safe_url(url):
             errors.append("Only valid http or https URLs are allowed.")
 
-        if errors:
-            return "", errors
+        if url and not selected_systems:
+            errors.append("Select at least one operating system when using a URL.")
 
-        script = generate_custom_safety_demo(message, url, delay_ms)
-        return script, errors
+        if errors:
+            return {}, errors
+
+        if url:
+            for target_os in selected_systems:
+                os_label = format_os_name(target_os)
+                generated_scripts[os_label] = generate_custom_safety_demo(
+                    message,
+                    url,
+                    delay_ms,
+                    target_os,
+                )
+        else:
+            generated_scripts["Generic"] = generate_custom_safety_demo(
+                message,
+                "",
+                delay_ms,
+                "generic",
+            )
+
+        return generated_scripts, errors
 
     errors.append(f"Unknown template selected: {template_id}")
-    return "", errors
+    return {}, errors
 
 
 def export_acknowledgements_are_checked(form_data):
@@ -375,22 +485,31 @@ def make_safe_filename(template_id):
     return f"{cleaned_template_id}_{timestamp}.txt"
 
 
-def save_exported_script(template_id, script_text):
+def save_exported_scripts(template_id, generated_scripts):
     """
-    Save the generated script to the local exports folder.
+    Save generated scripts to a zip file.
 
-    The app writes the file locally so the user has a copy for review and
-    download. The script itself is still harmless and template-limited.
+    If the user selects multiple operating systems, each OS receives its own
+    .txt file inside the zip archive.
     """
     EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    filename = make_safe_filename(template_id)
-    export_path = EXPORT_DIR / filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    cleaned_template_id = re.sub(r"[^a-zA-Z0-9_-]", "", template_id)
 
-    with export_path.open("w", encoding="utf-8") as file:
-        file.write(script_text)
+    if not cleaned_template_id:
+        cleaned_template_id = "training_script"
 
-    return export_path
+    zip_filename = f"{cleaned_template_id}_{timestamp}.zip"
+    zip_path = EXPORT_DIR / zip_filename
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for os_label, script_text in generated_scripts.items():
+            safe_os_label = re.sub(r"[^a-zA-Z0-9_-]", "", os_label.lower())
+            script_filename = f"{cleaned_template_id}_{safe_os_label}_{timestamp}.txt"
+            zip_file.writestr(script_filename, script_text)
+
+    return zip_path
 
 
 def create_lab_note(template, form_data, export_path):
@@ -419,6 +538,9 @@ def create_lab_note(template, form_data, export_path):
         "training_purpose": purpose,
         "target_environment": target_environment,
         "notes": notes,
+        "selected_operating_systems": ", ".join(
+            format_os_name(os_name) for os_name in get_selected_operating_systems(form_data)
+        ) or "Generic", 
         "exported_filename": export_path.name,
     }
 
@@ -475,7 +597,7 @@ def builder():
     """
     templates = load_training_templates()
     selected_template = None
-    generated_script = ""
+    generated_scripts = {}
     errors = []
     form_values = {}
 
@@ -485,7 +607,7 @@ def builder():
         action = request.form.get("action", "preview")
 
         selected_template = find_template_by_id(template_id)
-        generated_script, errors = build_safe_script(template_id, request.form)
+        generated_scripts, errors = build_safe_script(template_id, request.form)
 
         if action == "export":
             if not export_acknowledgements_are_checked(request.form):
@@ -494,22 +616,22 @@ def builder():
             if not selected_template:
                 errors.append("A valid template must be selected before export.")
 
-            if not errors and generated_script and selected_template:
-                export_path = save_exported_script(template_id, generated_script)
+            if not errors and generated_scripts and selected_template:
+                export_path = save_exported_scripts(template_id, generated_scripts)
                 record_lab_note(selected_template, request.form, export_path)
-
+            
                 return send_file(
                     export_path,
                     as_attachment=True,
                     download_name=export_path.name,
-                    mimetype="text/plain",
+                    mimetype="application/zip",
                 )
 
     return render_template(
         "builder.html",
         templates=templates,
         selected_template=selected_template,
-        generated_script=generated_script,
+        generated_scripts=generated_scripts,
         errors=errors,
         form_values=form_values,
     )
