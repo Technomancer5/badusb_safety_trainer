@@ -21,4 +21,4 @@ exports/generated_payloads/*.txt
 
 # OS files
 .DS_Store
-Thumbs.db
+Thumbs.dbexports/generated_payloads/*.zip
